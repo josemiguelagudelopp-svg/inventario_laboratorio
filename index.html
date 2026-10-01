@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario Lab - Control Total</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Supabase JS Client UMD estable -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Tailwind CSS v3 (Estable para producción) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 pb-20">
     <div class="max-w-md mx-auto space-y-4">
@@ -71,17 +71,11 @@
         const SUPABASE_URL = 'https://obcwirxjvypxdpxudyqu.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_nFUde6igy8iYfKScAMFhKQ_K1e7ot-d';
         
-        let supabaseClient = null;
-        try {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {
-            console.error("Error al inicializar Supabase:", e);
-        }
-
+        // Usamos supabaseClient para evitar conflictos con la librería global
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let inventarioCache = [];
 
         async function cargarInventario() {
-            if (!supabaseClient) return;
             const { data, error } = await supabaseClient.from('inventario').select('*');
             if (error) {
                 console.error('Error cargando inventario:', error);
