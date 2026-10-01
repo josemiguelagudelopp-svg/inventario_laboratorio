@@ -17,7 +17,7 @@
         </header>
 
         <!-- Botón para Agregar Nuevo Elemento -->
-        <button onclick="abrirModalFormulario()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 py-3 rounded-xl font-bold shadow-lg transition-all text-sm flex items-center justify-center gap-2">
+        <button onclick="abrirModalFormulario()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 py-3 rounded-xl font-bold shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
             <span>➕</span> Agregar Nuevo Elemento
         </button>
 
@@ -41,35 +41,33 @@
             
             <div class="space-y-1">
                 <label class="text-xs text-slate-400">Nombre del elemento</label>
-                <input type="text" id="elem-nombre" placeholder="Ej: Guantes de látex" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                <input type="text" id="elem-nombre" placeholder="Ej: Guantes de látex" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-100">
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
                     <label class="text-xs text-slate-400">Cantidad actual</label>
-                    <input type="number" id="elem-cantidad" placeholder="Ej: 25" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                    <input type="number" id="elem-cantidad" placeholder="Ej: 25" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-100">
                 </div>
                 <div class="space-y-1">
                     <label class="text-xs text-slate-400">Stock Mínimo (Alerta)</label>
-                    <input type="number" id="elem-minimo" placeholder="Ej: 5" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                    <input type="number" id="elem-minimo" placeholder="Ej: 5" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-100">
                 </div>
             </div>
 
             <div class="space-y-1">
                 <label class="text-xs text-slate-400">Unidad de medida (opcional)</label>
-                <input type="text" id="elem-unidad" placeholder="Ej: unidades, ml, gramos" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                <input type="text" id="elem-unidad" placeholder="Ej: unidades, ml, gramos" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-100">
             </div>
 
             <div class="flex gap-2 pt-2">
-                <button onclick="cerrarModalFormulario()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2.5 rounded-xl text-sm font-semibold">Cancelar</button>
-                <button onclick="guardarElemento()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl text-sm font-bold">Guardar</button>
+                <button onclick="cerrarModalFormulario()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">Cancelar</button>
+                <button onclick="guardarElemento()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl text-sm font-bold cursor-pointer">Guardar</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT DE CONEXIÓN Y LÓGICA -->
     <script>
-        // TUS CREDENCIALES EXACTAS DE SUPABASE
         const SUPABASE_URL = 'https://obcwirxjvypxdpxudyqu.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_nFUde6igy8iYfKScAMFhKQ_K1e7ot-d';
         
@@ -95,7 +93,6 @@
                 return;
             }
 
-            // Ordenar: primero los críticos (cantidad <= stock_minimo), luego alfabéticamente
             items.sort((a, b) => {
                 const aCritico = a.cantidad <= a.stock_minimo ? 0 : 1;
                 const bCritico = b.cantidad <= b.stock_minimo ? 0 : 1;
@@ -108,24 +105,24 @@
                 const card = document.createElement('div');
                 card.className = `p-4 rounded-2xl border flex flex-col gap-3 shadow-md transition-all ${esCritico ? 'bg-red-950/40 border-red-800' : 'bg-slate-800 border-slate-700'}`;
                 
+                // Texto y estructura idénticos a los de la app de escritorio
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
                             <h3 class="font-bold text-slate-100 text-base">${item.nombre}</h3>
                             <p class="text-sm mt-0.5 ${esCritico ? 'text-red-400 font-bold' : 'text-slate-400'}">
-                                Cantidad: ${item.cantidad} ${item.unidad || ''} ${esCritico ? '⚠️ [CRÍTICO]' : ''}
+                                Cantidad: ${item.cantidad} ${item.unidad || ''} | Mínimo: ${item.stock_minimo} ${esCritico ? '⚠️ [CRÍTICO]' : ''}
                             </p>
                         </div>
-                        <!-- Botón Eliminar Directo (Sin Advertencia) -->
-                        <button onclick="eliminarElemento(${item.id})" class="text-slate-400 hover:text-red-400 p-1 rounded-lg text-lg">🗑️</button>
+                        <button onclick="eliminarElemento(${item.id})" class="text-slate-400 hover:text-red-400 p-1 rounded-lg text-lg cursor-pointer" title="Eliminar">🗑️</button>
                     </div>
 
                     <div class="flex items-center justify-between pt-1 border-t border-slate-700/50">
-                        <button onclick="abrirModalFormulario(${item.id})" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-semibold text-slate-300">✏️ Editar</button>
+                        <button onclick="abrirModalFormulario(${item.id})" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-semibold text-slate-300 cursor-pointer">✏️ Editar</button>
                         
                         <div class="flex gap-2">
-                            <button onclick="modificarCantidad(${item.id}, -1)" class="bg-red-600 hover:bg-red-500 active:scale-95 w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center shadow">&#8722;</button>
-                            <button onclick="modificarCantidad(${item.id}, 1)" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center shadow">&#43;</button>
+                            <button onclick="modificarCantidad(${item.id}, -1)" class="bg-red-600 hover:bg-red-500 active:scale-95 w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center shadow cursor-pointer">&#8722;</button>
+                            <button onclick="modificarCantidad(${item.id}, 1)" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center shadow cursor-pointer">&#43;</button>
                         </div>
                     </div>
                 `;
@@ -146,11 +143,7 @@
             if (!item) return;
             
             const nuevaCantidad = Math.max(0, item.cantidad + cambio);
-
-            const { error } = await supabase
-                .from('inventario')
-                .update({ cantidad: nuevaCantidad })
-                .eq('id', id);
+            const { error } = await supabase.from('inventario').update({ cantidad: nuevaCantidad }).eq('id', id);
 
             if (error) {
                 alert('Error al actualizar');
@@ -169,7 +162,6 @@
             }
         }
 
-        // --- Funciones del Modal de Creación / Edición ---
         function abrirModalFormulario(id = null) {
             document.getElementById('modal-form').classList.remove('hidden');
             document.getElementById('modal-form').classList.add('flex');
@@ -212,11 +204,9 @@
             const datos = { nombre, cantidad, stock_minimo, unidad: unidad || null };
 
             if (id) {
-                // Actualizar existente
                 const { error } = await supabase.from('inventario').update(datos).eq('id', id);
                 if (error) alert('Error al actualizar');
             } else {
-                // Crear nuevo
                 const { error } = await supabase.from('inventario').insert([datos]);
                 if (error) alert('Error al crear');
             }
@@ -225,9 +215,7 @@
             cargarInventario();
         }
 
-        // Sincronización automática cada 3 segundos con la base de datos
         setInterval(cargarInventario, 3000);
-
         cargarInventario();
     </script>
 </body>
