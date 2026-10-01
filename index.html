@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario Lab - Control Total</title>
-    <!-- Tailwind CSS v3 (Estable para producción) -->
+    <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -67,11 +67,27 @@
         </div>
     </div>
 
+    <!-- MODAL PARA AJUSTE RÁPIDO DE CANTIDAD (NUEVO) -->
+    <div id="modal-ajuste" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-xs rounded-2xl p-6 space-y-4 shadow-2xl text-center">
+            <h3 id="ajuste-titulo" class="font-bold text-slate-100 text-base">Ajustar Stock</h3>
+            <p id="ajuste-actual" class="text-xs text-slate-400"></p>
+            <input type="hidden" id="ajuste-id">
+            
+            <input type="number" id="ajuste-cantidad" placeholder="Ej: 50 o -15" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-slate-100 text-center font-bold">
+            <p class="text-[10px] text-slate-500">Usa números positivos para sumar o negativos para restar.</p>
+
+            <div class="flex gap-2 pt-1">
+                <button onclick="cerrarModalAjuste()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl text-xs font-semibold cursor-pointer">Cancelar</button>
+                <button onclick="aplicarAjusteRapido()" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2 rounded-xl text-xs font-bold cursor-pointer">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://obcwirxjvypxdpxudyqu.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_nFUde6igy8iYfKScAMFhKQ_K1e7ot-d';
         
-        // Usamos supabaseClient para evitar conflictos con la librería global
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let inventarioCache = [];
 
@@ -121,7 +137,9 @@
                     <div class="flex items-center justify-between pt-1 border-t border-slate-700/50">
                         <button onclick="abrirModalFormulario(${item.id})" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-semibold text-slate-300 cursor-pointer">✏️ Editar</button>
                         
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 items-center">
+                            <!-- Botón de ajuste rápido masivo (±) -->
+                            <button onclick="abrirModalAjuste(${item.id})" class="bg-sky-600 hover:bg-sky-500 active:scale-95 px-3 h-9 rounded-xl font-bold text-sm text-white flex items-center justify-center shadow cursor-pointer" title="Ajuste Rápido">±</button>
                             <button onclick="modificarCantidad(${item.id}, -1)" class="bg-red-600 hover:bg-red-500 active:scale-95 w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center shadow cursor-pointer">&#8722;</button>
                             <button onclick="modificarCantidad(${item.id}, 1)" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center shadow cursor-pointer">&#43;</button>
                         </div>
@@ -151,6 +169,47 @@
             } else {
                 item.cantidad = nuevaCantidad;
                 filtrarYRenderizar();
+            }
+        }
+
+        // --- Funciones para el Modal de Ajuste Rápido ---
+        function abrirModalAjuste(id) {
+            const item = inventarioCache.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('ajuste-id').value = item.id;
+            document.getElementById('ajuste-titulo').innerText = `Ajustar: ${item.nombre}`;
+            document.getElementById('ajuste-actual').innerText = `Stock actual: ${item.cantidad} ${item.unidad || ''}`;
+            document.getElementById('ajuste-cantidad').value = '';
+            document.getElementById('modal-ajuste').classList.remove('hidden');
+            document.getElementById('modal-ajuste').classList.add('flex');
+            document.getElementById('ajuste-cantidad').focus();
+        }
+
+        function cerrarModalAjuste() {
+            document.getElementById('modal-ajuste').classList.remove('flex');
+            document.getElementById('modal-ajuste').classList.add('hidden');
+        }
+
+        async function aplicarAjusteRapido() {
+            const id = parseInt(document.getElementById('ajuste-id').value);
+            const valor = parseInt(document.getElementById('ajuste-cantidad').value);
+            
+            if (isNaN(valor)) {
+                alert('Ingresa un número válido.');
+                return;
+            }
+
+            const item = inventarioCache.find(i => i.id === id);
+            if (!item) return;
+
+            const nuevaCantidad = Math.max(0, item.cantidad + valor);
+            const { error } = await supabaseClient.from('inventario').update({ cantidad: nuevaCantidad }).eq('id', id);
+
+            if (error) {
+                alert('Error al actualizar el stock');
+            } else {
+                cerrarModalAjuste();
+                cargarInventario();
             }
         }
 
